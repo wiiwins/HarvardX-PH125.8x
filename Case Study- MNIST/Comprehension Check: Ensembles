@@ -1,0 +1,52 @@
+##Comprehension Check: Ensembles
+#Q1
+models <- c("glm", "lda",  "naive_bayes",  "svmLinear", 
+                "gamboost",  "gamLoess", "qda", 
+                "knn", "kknn", "loclda", "gam",
+                "rf", "ranger",  "wsrf", "Rborist", 
+                "avNNet", "mlp", "monmlp",
+                "adaboost", "gbm",
+                "svmRadial", "svmRadialCost", "svmRadialSigma")
+
+library(caret)
+library(dslabs)
+set.seed(1)
+data("mnist_27")
+
+fits <- lapply(models, function(model){ 
+	print(model)
+	train(y ~ ., method = model, data = mnist_27$train)
+}) 
+    
+names(fits) <- models
+
+#Q2
+pred <- sapply(fits, function(object) 
+	predict(object, newdata = mnist_27$test))
+dim(pred)
+
+#Q3
+acc <- colMeans(pred == mnist_27$test$y)
+acc
+mean(acc)
+
+#Q4
+votes <- rowMeans(pred == "7")
+y_hat <- ifelse(votes > 0.5, "7", "2")
+mean(y_hat == mnist_27$test$y)
+
+#Q5
+ind <- acc > mean(y_hat == mnist_27$test$y)
+sum(ind)
+models[ind]
+
+#Q6
+acc_hat <- sapply(fits, function(fit) min(fit$results$Accuracy))
+mean(acc_hat)
+
+#Q7
+ind <- acc_hat >= 0.8
+votes <- rowMeans(pred[,ind] == "7")
+y_hat <- ifelse(votes>=0.5, 7, 2)
+mean(y_hat == mnist_27$test$y)
+          
