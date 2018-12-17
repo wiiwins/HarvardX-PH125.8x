@@ -1,0 +1,67 @@
+##Comprehension Check: Caret Package
+
+#Q1
+set.seed(1)
+library(caret)
+fit <- train(y ~ ., method = "Rborist",   
+				tuneGrid = data.frame(predFixed = 1, minNode = seq(25, 100, 25)), data = dat)
+ggplot(fit)
+
+#Q2
+library(caret)
+dat %>% 
+	mutate(y_hat = predict(fit)) %>% 
+	ggplot() +
+	geom_point(aes(x, y)) + 
+  geom_step(aes(x, y_hat), col = 2)
+  
+#Q3
+library(caret)
+library(dslabs)
+set.seed(1991)
+data("tissue_gene_expression")
+    
+fit <- with(tissue_gene_expression, 
+                train(x, y, method = "rpart",
+                      tuneGrid = data.frame(cp = seq(0, 0.1, 0.01))))
+    
+ggplot(fit)
+
+#Q4
+confusionMatrix(fit)
+
+#Q5
+set.seed(1991)
+data("tissue_gene_expression")
+    
+fit_rpart <- with(tissue_gene_expression, 
+                      train(x, y, method = "rpart",
+                            tuneGrid = data.frame(cp = seq(0, 0.10, 0.01)),
+                            control = rpart.control(minsplit = 0)))
+ggplot(fit_rpart)
+confusionMatrix(fit_rpart)
+
+
+#Q6
+plot(fit_rpart$finalModel)
+text(fit_rpart$finalModel)
+
+#Q7
+set.seed(1991)
+library(randomForest)
+fit <- with(tissue_gene_expression, 
+                train(x, y, method = "rf", 
+                      nodesize = 1,
+                      tuneGrid = data.frame(mtry = seq(50, 200, 25))))
+    
+ggplot(fit)
+
+#Q8
+imp <- varImp(fit)
+imp
+
+#Q9
+data_frame(term = rownames(imp$importance), 
+			importance = imp$importance$Overall) %>%
+	mutate(rank = rank(-importance)) %>% arrange(desc(importance)) %>%
+	filter(term %in% tree_terms)
